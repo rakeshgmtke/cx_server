@@ -54,7 +54,7 @@ func main() {
 	networkType := flag.String("network_type", "tcp", "protocol type tcp/sctp")
 	enableLogging := flag.Bool("log", false, "Enable logging to a file")
 	logFilePath := flag.String("logpath", "/tmp/hss.log", "Path to the log file")
-	ifcXmlFile := flag.String("ifcxml", "", "Path to the User-Data XML file")
+	ifcXmlFile := flag.String("ifcxml", "", "Path to the User-Data XML file or it will use default ifc_default.xml file present in current directory")
 
 	flag.Parse()
 
