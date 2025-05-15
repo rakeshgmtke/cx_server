@@ -111,12 +111,8 @@ func handleMAR(settings sm.Settings, stats *DiameterStats, enableLogging bool) d
 		a.NewAVP(avp.OriginHost, avp.Mbit, 0, settings.OriginHost)
 		a.NewAVP(avp.OriginRealm, avp.Mbit, 0, settings.OriginRealm)
 
-		//a.NewAVP(avp.UserName, avp.Mbit, 0, req.UserName)
-		Is_UserName_AVP, _ := m.FindAVP(avp.UserName, 0) // Provide both AVP code and Vendor ID (0 for standard)
-		if Is_UserName_AVP != nil {
-			impi = string(req.UserName)
-			a.NewAVP(avp.UserName, avp.Mbit, 0, req.UserName)
-		}
+		//impi avp check already done
+		a.NewAVP(avp.UserName, avp.Mbit, 0, req.UserName)
 
 		//Check is Vendor-Specific-Application-Id present in Request, if yes.. include Vendor-Specific-Application-Id in response also.
 		Is_VendorSpecificApplicationID_AVP, _ := m.FindAVP(avp.VendorSpecificApplicationID, 0) // Provide both AVP code and Vendor ID (0 for standard)
