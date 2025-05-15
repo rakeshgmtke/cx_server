@@ -77,19 +77,15 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 	return func(c diam.Conn, m *diam.Message) {
 		var err error
 		var req SAR
-		//var code uint32
 		var impu string
 		var impi string
 		var scscf_name string
 		var scscf_stored_name string
 		var msisdn string
 		var tel string
-		//var xmlUserData string
 
 		//avpSCSCFRestorationInfo := make(map[string]*diam.AVP, 5000000)
 		avpSCSCFRestorationInfo := make(map[string]*diam.AVP)
-
-		//log.Printf("xmlUserData :%s", xmlUserData)
 
 		if err := m.Unmarshal(&req); err != nil {
 			log.Printf("Failed to parse message from %s: %s\n%s",
@@ -97,7 +93,7 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 			return
 		}
 
-		//SAR Count
+		//SAR RECV Count
 		stats.IncrementReceived("SAR", string(req.OriginHost), "sar-type-"+string(fmt.Sprintf("%d", datatype.Enumerated(req.ServerAssignmentType))))
 
 		if enableLogging {
@@ -109,10 +105,11 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 			impu = string(req.PublicIdentity)
 		}
 
-		/*		Is_UserName_AVP, _ := m.FindAVP(avp.UserName, 0) // Provide both AVP code and Vendor ID (0 for standard)
-				if Is_UserName_AVP != nil {
-					impi = string(req.UserName)
-				}
+		/*
+			Is_UserName_AVP, _ := m.FindAVP(avp.UserName, 0) // Provide both AVP code and Vendor ID (0 for standard)
+					if Is_UserName_AVP != nil {
+						impi = string(req.UserName)
+					}
 		*/
 		Is_ServerName_AVP, _ := m.FindAVP(avp.ServerName, VENDOR_3GPP) // Provide both AVP code and Vendor ID (0 for standard)
 		if Is_ServerName_AVP != nil {
@@ -125,8 +122,6 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 		a.NewAVP(avp.SessionID, avp.Mbit, 0, req.SessionID)
 		a.NewAVP(avp.OriginHost, avp.Mbit, 0, settings.OriginHost)
 		a.NewAVP(avp.OriginRealm, avp.Mbit, 0, settings.OriginRealm)
-		//a.NewAVP(avp.UserName, avp.Mbit, 0, req.UserName)
-		//a.AddAVP(avpSCSCFRestorationInfo[impu])
 
 		Is_UserName_AVP, _ := m.FindAVP(avp.UserName, 0) // Provide both AVP code and Vendor ID (0 for standard)
 		if Is_UserName_AVP != nil {

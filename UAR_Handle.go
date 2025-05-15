@@ -85,14 +85,9 @@ func handleUAR(settings sm.Settings, stats *DiameterStats, enableLogging bool) d
 			}
 		}
 
-		//stats.IncrementReceived("UAR", "10.1.1.1", "uar_type_1")
-
-		////log.Printf("for IMPU: %s stored SCSCF_NAME2: %s", impu, scscf_name)
-		//scscf_name = readSCSCFNameData(impu)
-		////log.Printf("for IMPU: %s stored SCSCF_NAME3: %s", impu, scscf_name)
-
 		//Creating Response without result code
 		a := m.Answer(0)
+
 		a.NewAVP(avp.SessionID, avp.Mbit, 0, req.SessionID)
 		a.NewAVP(avp.OriginHost, avp.Mbit, 0, settings.OriginHost)
 		a.NewAVP(avp.OriginRealm, avp.Mbit, 0, settings.OriginRealm)
@@ -131,15 +126,6 @@ func handleUAR(settings sm.Settings, stats *DiameterStats, enableLogging bool) d
 		if Is_UserAuthorizationType_AVP != nil {
 			if req.UserAuthorizationType == 0 && scscf_name == "" {
 				stats.IncrementReceived("UAA", string(req.OriginHost), "uar-type-"+string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType)))+"-RESP-CODE-2001")
-
-				// for Debug added
-				/*success := addOrModifySCSCFName(impu, "scscf.com")
-				if success {
-					//log.Printf("addOrModifySCSCFName func success for IMPU: %s is SCSCF_NAME DUMMY is Stored is Successful", impu)
-				} else {
-					//log.Printf("addOrModifySCSCFName func failed IMPU: %s SCSCF_NAME DUMMY ", impu)
-				}
-				*/
 				_, err = sendUAA_UAT_INIT_REG(settings, c, a, enableLogging)
 				if err != nil {
 					//log.Printf("Failed to send sendUAA_UAT_INIT_REG: %s", err.Error())
@@ -237,13 +223,6 @@ func sendUAA_UAT_1_REGTRD(settings sm.Settings, w io.Writer, m *diam.Message, en
 
 	m.NewAVP(avp.ResultCode, avp.Mbit, 0, datatype.Unsigned32(diam.Success))
 
-	/*	m.NewAVP(avp.ExperimentalResult, avp.Mbit, 0, &diam.GroupedAVP{
-			AVP: []*diam.AVP{
-				diam.NewAVP(avp.ExperimentalResultCode, avp.Mbit, 0, datatype.Unsigned32(2001)),
-				diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(VENDOR_3GPP)),
-			},
-		})
-	*/
 	if enableLogging {
 		log.Printf("inside sendUAA_UAT_1_REGTRD func and SCSCF NAME PREESENT")
 		log.Printf("Sending UAA to \n%s", m)
@@ -257,8 +236,6 @@ func sendUAA_UAT_2(settings sm.Settings, w io.Writer, m *diam.Message, enableLog
 	m.NewAVP(avp.ServerCapabilities, avp.Mbit, VENDOR_3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(avp.MandatoryCapability, avp.Mbit, VENDOR_3GPP, datatype.Unsigned32(MandatoryCapability)),
-			//diam.NewAVP(avp.OptionalCapability, avp.Mbit, VENDOR_3GPP, datatype.Unsigned32(1)),
-			//diam.NewAVP(avp.ServerName, avp.Mbit, VENDOR_3GPP, datatype.UTF8String("sip:scscf.maavenir.com")),
 		},
 	})
 	m.NewAVP(avp.ResultCode, avp.Mbit, 0, datatype.Unsigned32(2001))

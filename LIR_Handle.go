@@ -87,6 +87,7 @@ func handleLIR(settings sm.Settings, stats *DiameterStats, enableLogging bool) d
 
 		//Creating Response without result code
 		a := m.Answer(0)
+
 		a.NewAVP(avp.SessionID, avp.Mbit, 0, req.SessionID)
 		a.NewAVP(avp.OriginHost, avp.Mbit, 0, settings.OriginHost)
 		a.NewAVP(avp.OriginRealm, avp.Mbit, 0, settings.OriginRealm)
