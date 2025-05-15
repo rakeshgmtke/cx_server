@@ -6,12 +6,11 @@ import (
 	"io"
 	"log"
 
-    "github.com/rakeshgmtke/go-diameter/diam"
-    "github.com/rakeshgmtke/go-diameter/diam/avp"
-    "github.com/rakeshgmtke/go-diameter/diam/datatype"
-    _ "github.com/rakeshgmtke/go-diameter/diam/dict"
-    "github.com/rakeshgmtke/go-diameter/diam/sm"
-
+	"github.com/rakeshgmtke/go-diameter/diam"
+	"github.com/rakeshgmtke/go-diameter/diam/avp"
+	"github.com/rakeshgmtke/go-diameter/diam/datatype"
+	_ "github.com/rakeshgmtke/go-diameter/diam/dict"
+	"github.com/rakeshgmtke/go-diameter/diam/sm"
 )
 
 func handleLIR(settings sm.Settings, stats *DiameterStats, enableLogging bool) diam.HandlerFunc {
@@ -86,7 +85,7 @@ func handleLIR(settings sm.Settings, stats *DiameterStats, enableLogging bool) d
 			log.Printf("from LIR received IMPU: %s STORED SCSCF_NAME : %s ", impu, scscf_name)
 		}
 
-		//Creating Response
+		//Creating Response without result code
 		a := m.Answer(0)
 		a.NewAVP(avp.SessionID, avp.Mbit, 0, req.SessionID)
 		a.NewAVP(avp.OriginHost, avp.Mbit, 0, settings.OriginHost)
@@ -138,7 +137,7 @@ func handleLIR(settings sm.Settings, stats *DiameterStats, enableLogging bool) d
 		} else if scscf_name != "" {
 			//SCSCF_NAME is stored. returning with Stored SCSCF_NAME with Success
 			if enableLogging {
-				log.Printf("LIA sending SCSCF_NAME is stored", scscf_name)
+				log.Printf("LIA sending SCSCF_NAME is stored %s", scscf_name)
 			}
 			stats.IncrementReceived("LIA", string(req.OriginHost), "SCSCF-NAME-RESP-CODE-2001")
 			a.NewAVP(avp.ResultCode, avp.Mbit, 0, datatype.Unsigned32(2001))
@@ -156,7 +155,6 @@ func handleLIR(settings sm.Settings, stats *DiameterStats, enableLogging bool) d
 				},
 			})
 		}
-		//}
 
 		_, err = sendLIA_default(settings, c, a, enableLogging)
 		if err != nil {

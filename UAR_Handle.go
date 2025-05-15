@@ -6,12 +6,11 @@ import (
 	"io"
 	"log"
 
-    "github.com/rakeshgmtke/go-diameter/diam"
-    "github.com/rakeshgmtke/go-diameter/diam/avp"
-    "github.com/rakeshgmtke/go-diameter/diam/datatype"
-    _ "github.com/rakeshgmtke/go-diameter/diam/dict"
-    "github.com/rakeshgmtke/go-diameter/diam/sm"
-
+	"github.com/rakeshgmtke/go-diameter/diam"
+	"github.com/rakeshgmtke/go-diameter/diam/avp"
+	"github.com/rakeshgmtke/go-diameter/diam/datatype"
+	_ "github.com/rakeshgmtke/go-diameter/diam/dict"
+	"github.com/rakeshgmtke/go-diameter/diam/sm"
 )
 
 func handleUAR(settings sm.Settings, stats *DiameterStats, enableLogging bool) diam.HandlerFunc {
@@ -92,7 +91,7 @@ func handleUAR(settings sm.Settings, stats *DiameterStats, enableLogging bool) d
 		//scscf_name = readSCSCFNameData(impu)
 		////log.Printf("for IMPU: %s stored SCSCF_NAME3: %s", impu, scscf_name)
 
-		//Creating Response
+		//Creating Response without result code
 		a := m.Answer(0)
 		a.NewAVP(avp.SessionID, avp.Mbit, 0, req.SessionID)
 		a.NewAVP(avp.OriginHost, avp.Mbit, 0, settings.OriginHost)

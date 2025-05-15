@@ -10,13 +10,11 @@ import (
 
 	"io"
 
-    "github.com/rakeshgmtke/go-diameter/diam"
-    "github.com/rakeshgmtke/go-diameter/diam/avp"
-    "github.com/rakeshgmtke/go-diameter/diam/datatype"
-    _ "github.com/rakeshgmtke/go-diameter/diam/dict"
-    "github.com/rakeshgmtke/go-diameter/diam/sm"
-
-
+	"github.com/rakeshgmtke/go-diameter/diam"
+	"github.com/rakeshgmtke/go-diameter/diam/avp"
+	"github.com/rakeshgmtke/go-diameter/diam/datatype"
+	_ "github.com/rakeshgmtke/go-diameter/diam/dict"
+	"github.com/rakeshgmtke/go-diameter/diam/sm"
 )
 
 func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, ifcXmlFile string) diam.HandlerFunc {
@@ -121,8 +119,8 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 			scscf_name = string(req.ServerName)
 		}
 
-		//Creating Response
-	    a := m.Answer(0)
+		//Creating Response without result code
+		a := m.Answer(0)
 
 		a.NewAVP(avp.SessionID, avp.Mbit, 0, req.SessionID)
 		a.NewAVP(avp.OriginHost, avp.Mbit, 0, settings.OriginHost)
@@ -229,7 +227,7 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 						//if restoration info present for impu then Add it in response
 						if avpSCSCFRestorationInfo[impu] != nil {
 							if enableLogging {
-								log.Printf("adding avpSCSCFRestorationInfo for IMPU SAR_TYPE 3:", impu)
+								log.Printf("adding avpSCSCFRestorationInfo for IMPU SAR_TYPE 3: %s", impu)
 							}
 							a.AddAVP(avpSCSCFRestorationInfo[impu])
 							stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-0"+"restore-info"+"-2001")
@@ -306,7 +304,7 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 						//if restoration info present for impu then Add it in response
 						if avpSCSCFRestorationInfo[impu] != nil {
 							if enableLogging {
-								log.Printf("adding avpSCSCFRestorationInfo for IMPU SAR_TYPE 3:", impu)
+								log.Printf("adding avpSCSCFRestorationInfo for IMPU SAR_TYPE 3: %s", impu)
 							}
 							a.AddAVP(avpSCSCFRestorationInfo[impu])
 							stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-3"+"restore-info"+"-2001")
