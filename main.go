@@ -92,9 +92,6 @@ func main() {
 
 	//Function to start Diameter Stats
 	stats := NewDiameterStats()
-	// Simulate some DIAMETER traffic
-	//stats.IncrementReceived("UAR", "10.1.1.1", "uar_type_1")
-	//stats.IncrementReceived("UAA", "10.1.1.1", "ddddd")
 
 	// Generate the report
 	ReportHeading := fmt.Sprintf("HostName: %s Realm: %s\nListening on : %s", *host, *realm, *addr)
