@@ -1,0 +1,4 @@
+github.com/ishidawataru/sctp v0.0.0-20230406120618-7ff4192f6ff2 h1:i2fYnDurfLlJH8AyyMOnkLHnHeP8Ff/DDpuZA/D3bPo=
+github.com/ishidawataru/sctp v0.0.0-20230406120618-7ff4192f6ff2/go.mod h1:co9pwDoBCm1kGxawmb4sPq0cSIOOWNPT4KnHotMP1Zg=
+github.com/rakeshgmtke/go-diameter v0.0.0-20250515134342-2160f4f91a8c h1:wP6xNoDH2j+2ba3xRjn8I57arjsV8BNLb+VgrPzvt1w=
+github.com/rakeshgmtke/go-diameter v0.0.0-20250515134342-2160f4f91a8c/go.mod h1:yUWKcDNxZMLaFbqu5SgrZGg/G2wzjdsuRlsmmRcHkXg=
