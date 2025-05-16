@@ -1,25 +1,26 @@
 # cx_server
-Diameter Server to handle Cx interface
+# Diameter Server to handle Cx interface
 
+ # ./cx_server -diam_host hss1.ims.com -diam_realm ims.com -pprof_addr :9000  -addr 10.1.10.10:3868  -ifcxml ifc_default.xml
 
-Usage of ./cx_server:
-  -addr string
+Usage of **./cx_server:**
+  **-addr** string
         address in the form of ip:port to listen on (default "127.0.0.1:3868")
-  -cert_file string
+  **-cert_file** string
         tls certificate file (optional)
-  -diam_host string
+  **-diam_host** string
         diameter identity host (default "server")
-  -diam_realm string
+  **-diam_realm** string
         diameter identity realm (default "go-diameter")
-  -ifcxml string
+  **-ifcxml** string
         Path to the User-Data XML file or it will use default ifc_default.xml file present in current directory
-  -key_file string
+  **-key_file** string
         tls key file (optional)
-  -log
+  **-log**
         Enable logging to a file
-  -logpath string
+  **-logpath** string
         Path to the log file (default "/tmp/hss.log")
-  -network_type string
+  **-network_type** string
         protocol type tcp/sctp (default "tcp")
-  -pprof_addr string
+  **-pprof_addr** string
         address in form of ip:port for the pprof server (default ":9000")
