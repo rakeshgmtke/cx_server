@@ -1,9 +1,9 @@
 # cx_server
 # Diameter Server to handle Cx interface
 
- # ./cx_server -diam_host hss1.ims.com -diam_realm ims.com -pprof_addr :9000  -addr 10.1.10.10:3868  -ifcxml ifc_default.xml
-
 Usage of **./cx_server:**
+# ./cx_server -diam_host hss1.ims.com -diam_realm ims.com -pprof_addr :9000  -addr 10.1.10.10:3868  -ifcxml ifc_default.xml
+
   **-addr** string
         address in the form of ip:port to listen on (default "127.0.0.1:3868")
   **-cert_file** string
