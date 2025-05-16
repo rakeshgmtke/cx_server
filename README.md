@@ -62,7 +62,7 @@ You can run the `cx_server` directly from the command line after building it (if
 		  Path to the log file (default: "/tmp/hss.log"). This is used only if -log is enabled.
 	
 	-network_type
-		  Protocol type to use for DIAMETER communication (tcp or sctp) (default: "tcp").
+		  Protocol type to use for DIAMETER communication (tcp or sctp) (default: "TCP").  Note: SCTP is not tested.
 	
 	-pprof_addr
 		  Address in the form of ip:port for the pprof server (default: ":9000").
