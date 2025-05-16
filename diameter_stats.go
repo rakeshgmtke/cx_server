@@ -13,9 +13,7 @@ import (
 // PeerCounter holds the count and start time for a specific message type and peer.
 type PeerCounter struct {
 	count int
-	//startTime time.Time
 	count_old int
-	//timestamps []time.Time
 	mu sync.Mutex
 }
 
@@ -47,46 +45,8 @@ func (ds *DiameterStats) IncrementReceived(msgName string, peerIP string, additi
 	counter.mu.Lock()
 	defer counter.mu.Unlock()
 	counter.count++
-	//now := time.Now()
-	//counter.timestamps = append(counter.timestamps, now)
-
-}
-/*
-// calculateTPS calculates the transactions per second for a specific counter within the given interval.
-func (pc *PeerCounter) calculateTPS(interval time.Duration) float64 {
-	pc.mu.Lock()
-	defer pc.mu.Unlock()
-	if len(pc.timestamps) == 0 {
-		return 0
-	}
-	now := time.Now()
-	count := 0
-	for _, timestamp := range pc.timestamps {
-		if now.Sub(timestamp) <= interval {
-			count++
-		}
-	}
-	return float64(count) / interval.Seconds()
 }
 
-
-// calculateTPS calculates the transactions per second for a specific counter within the given interval.
-func (pc *PeerCounter) calculateTPS(interval time.Duration) float64 {
-	pc.mu.Lock()
-	defer pc.mu.Unlock()
-	if len(pc.timestamps) == 0 {
-		return 0
-	}
-	now := time.Now()
-	count := 0
-	for _, timestamp := range pc.timestamps {
-		if now.Sub(timestamp) <= interval {
-			count++
-		}
-	}
-	return float64(count) / interval.Seconds()
-}
-*/
 // printMetrics prints the DIAMETER statistics every second in a column format with auto-adjusted column widths.
 func printMetrics(stats *DiameterStats, ReportHeading string) {
 
