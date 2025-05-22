@@ -11,15 +11,23 @@ A high-performance DIAMETER server for the Cx interface in IMS networks.
 
 ## Key Features
 
-* **Cx Interface Support:** Handles core Cx interface messages: UAR, MAR, SAR, and LIR.
+* **Cx Interface Support:** This function handles Cx interface messages like UAR, MAR, SAR, and LIR.
 * **Standards Compliance:** Adheres to ETSI TS 129 228 and ETSI TS 129 229 specifications for the Cx interface based on the DIAMETER protocol.
 * **Performance Optimized:** Developed in Go for high concurrency and efficient resource utilization.
 * **Statistics:** real-time server statistics.
 * **pprof Support:** Includes standard Go profiling for performance analysis.
 * **IMS Restoration Awareness:** Takes into account procedures defined in ETSI TS 123 380 for IMS restoration.
-* **Configurable:** Uses command-line arguments for easy configuration of essential parameters.
+* **Configurable:** Uses command-line arguments to easily configure essential parameters.
 * **Logging:** Basic logging can be enabled. Logging can degrade script performance; use it for debugging purposes only.
+* **Version:** Prints build version and build date
 
+
+## Spec links:
+
+https://www.etsi.org/deliver/etsi_ts/129200_129299/129228/18.00.00_60/ts_129228v180000p.pdf
+https://www.etsi.org/deliver/etsi_ts/129200_129299/129229/18.01.00_60/ts_129229v180100p.pdf
+https://www.etsi.org/deliver/etsi_ts/123300_123399/123380/18.01.00_60/ts_123380v180100p.pdf
+https://www.etsi.org/deliver/etsi_ts/129200_129299/129228/18.00.00_60/ts_129228v180000p0.zip
 
 ## Getting Started
 
