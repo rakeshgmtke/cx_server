@@ -2,7 +2,7 @@
 package main
 
 import (
-	//"fmt"
+	"fmt"
 	"io"
 	"log"
 
@@ -75,10 +75,10 @@ func handleLIR(settings sm.Settings, stats *DiameterStats, enableLogging bool) d
 		Is_UserAuthorizationType_AVP, _ := m.FindAVP(avp.UserAuthorizationType, VENDOR_3GPP) // Provide both AVP code and Vendor ID (0 for standard)
 		//log.Printf("Is_UserAuthorizationType_AVP received: %s : %d", Is_UserAuthorizationType_AVP, req.UserAuthorizationType)
 		if Is_UserAuthorizationType_AVP != nil && req.UserAuthorizationType == 2 {
-			stats.IncrementReceived("LIR", string(req.OriginHost), "CAPABILITIES-QUERY")
+			stats.IncrementReceived("LIR", string(req.OriginHost), "uar-type-" + string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType))) + "-CAPABILITIES-QUERY")
 		} else {
 			//Is_UserAuthorizationType_AVP == nil && Is_PublicIdentity_AVP != nil  {
-			stats.IncrementReceived("LIR", string(req.OriginHost), "SCSCF-NAME-QUERY")
+			stats.IncrementReceived("LIR", string(req.OriginHost), "uar-type-" + string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType))) + "-SCSCF-NAME-QUERY")
 		}
 
 		if enableLogging {
@@ -125,7 +125,7 @@ func handleLIR(settings sm.Settings, stats *DiameterStats, enableLogging bool) d
 		//log.Printf("Is_UserAuthorizationType_AVP received: %s : %d", Is_UserAuthorizationType_AVP, req.UserAuthorizationType)
 		//if Is_UserAuthorizationType_AVP != nil ||  {
 		if req.UserAuthorizationType == 2 {
-			stats.IncrementReceived("LIA", string(req.OriginHost), "CAPABILITIES-RESP-CODE-2001")
+			stats.IncrementReceived("LIA", string(req.OriginHost), "uar-type-" + string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType))) + "-CAPABILITIES-RESP-CODE-2001")
 			m.NewAVP(avp.ServerCapabilities, avp.Mbit, VENDOR_3GPP, &diam.GroupedAVP{
 				AVP: []*diam.AVP{
 					diam.NewAVP(avp.MandatoryCapability, avp.Mbit, VENDOR_3GPP, datatype.Unsigned32(MandatoryCapability)),
@@ -140,12 +140,12 @@ func handleLIR(settings sm.Settings, stats *DiameterStats, enableLogging bool) d
 			if enableLogging {
 				log.Printf("LIA sending SCSCF_NAME is stored %s", scscf_name)
 			}
-			stats.IncrementReceived("LIA", string(req.OriginHost), "SCSCF-NAME-RESP-CODE-2001")
+			stats.IncrementReceived("LIA", string(req.OriginHost), "uar-type-" + string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType))) + "-SCSCF-NAME-RESP-CODE-2001")
 			a.NewAVP(avp.ResultCode, avp.Mbit, 0, datatype.Unsigned32(2001))
 			a.NewAVP(avp.ServerName, avp.Mbit, VENDOR_3GPP, datatype.UTF8String(scscf_name))
 		} else {
 			//SCSCF_NAME is not stored. returning with DIAMETER_UNREGISTERED_SERVICE.
-			stats.IncrementReceived("LIA", string(req.OriginHost), "SCSCF-NAME-RESP-CODE-5003")
+			stats.IncrementReceived("LIA", string(req.OriginHost), "uar-type-" + string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType))) +  "-SCSCF-NAME-RESP-CODE-5003")
 			if enableLogging {
 				log.Printf("LIA sending SCSCF_NAME is Not stored sending DIAMETER_UNREGISTERED_SERVICE")
 			}
