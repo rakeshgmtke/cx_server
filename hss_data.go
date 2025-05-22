@@ -4,6 +4,12 @@ package main
 import (
 	"fmt"
 	"sync"
+
+	"github.com/rakeshgmtke/go-diameter/diam"
+    "github.com/rakeshgmtke/go-diameter/diam/datatype"
+	_"github.com/rakeshgmtke/go-diameter/diam/avp"	
+    _ "github.com/rakeshgmtke/go-diameter/diam/dict"
+
 )
 
 // To store HSS related data
@@ -11,21 +17,23 @@ import (
 type HSSData struct {
 	SCSCFName          string
 	IMPI               string
-	IMSRestorationInfo string
+	IMSRestorationInfo *diam.AVP
 }
 
 // A global map to store the data.
 var HSSDataMap map[string]HSSData
 var mapMutex sync.RWMutex // Use a mutex for concurrent access
 
+
 // populateHSS populates the HSS data map with initial data.
 func populateHSS(size int) {
 	for i := 0; i < size; i++ {
 		impu := fmt.Sprintf("IMPU-%d", i)
+		imsRestorationInfo := diam.NewAVP(0, 0, 0, datatype.Unsigned32(i))
 		data := HSSData{
 			IMPI:               string(i),
 			SCSCFName:          string(i),
-			IMSRestorationInfo: string(i),
+			IMSRestorationInfo: imsRestorationInfo,
 		}
 		HSSDataMap[impu] = data // No mutex needed here; single-threaded during initialization.
 	}
@@ -49,7 +57,7 @@ func addOrModifyIMPI(impu string, impi string) bool {
 		//log.Printf("Added IMPI for IMPU '%s' to '%s'\n", impu, impi)
 		return true
 	}
-	//return false //Unreachable
+	return false //Unreachable
 }
 
 // addOrModifySCSCFName adds or modifies the SCSCFName field of an HSSData entry.
@@ -70,11 +78,11 @@ func addOrModifySCSCFName(impu string, scscfName string) bool {
 		//log.Printf("Added SCSCFName for IMPU '%s' to '%s'\n", impu, scscfName)
 		return true
 	}
-	//return false //Unreachable
+	return false //Unreachable
 }
 
 // addOrModifyIMSRestorationInfo adds or modifies the IMSRestorationInfo field of an HSSData entry.
-func addOrModifyIMSRestorationInfo(impu string, RestorationInfo string) bool {
+func addOrModifyIMSRestorationInfo(impu string, RestorationInfo *diam.AVP) bool {
 	mapMutex.Lock()
 	defer mapMutex.Unlock()
 
@@ -91,7 +99,7 @@ func addOrModifyIMSRestorationInfo(impu string, RestorationInfo string) bool {
 		//log.Printf("Added IMSRestorationInfo for IMPU '%s' to '%s'\n", impu, RestorationInfo)
 		return true
 	}
-	//return false //Unreachable.
+	return false //Unreachable.
 }
 
 // deleteIMPUData deletes an entry from the HSS data map.
@@ -109,14 +117,14 @@ func deleteIMPUData(impu string) {
 }
 
 // readIMPUData reads an entry from the HSS data map.
-func readIMPUData(impu string) (string, string, string) {
+func readIMPUData(impu string) (string, string, *diam.AVP) {
 	mapMutex.RLock()
 	defer mapMutex.RUnlock()
 
 	data, exists := HSSDataMap[impu]
 	if !exists {
 		//log.Printf("Error: IMPU '%s' not found\n", impu)
-		return "", "", ""
+		return "", "", nil
 	}
 
 	return data.IMPI, data.SCSCFName, data.IMSRestorationInfo
@@ -149,78 +157,14 @@ func readSCSCFNameData(impu string) string {
 }
 
 // readIMSRestorationInfoData reads IMSRestorationInfo data for a given IMPU.
-func readIMSRestorationInfoData(impu string) string {
+func readIMSRestorationInfoData(impu string) *diam.AVP {
 	mapMutex.RLock()
 	defer mapMutex.RUnlock()
 
 	data, exists := HSSDataMap[impu]
 	if !exists {
 		//log.Printf("Error: IMPU '%s' not found\n", impu)
-		return ""
+		return nil
 	}
 	return data.IMSRestorationInfo
-}
-
-// deleteDataByField deletes HSS data based on a specific field and value.
-// It returns the number of deleted entries.
-func deleteDataByField(field string, value string) int {
-	mapMutex.Lock()
-	defer mapMutex.Unlock()
-
-	deletedCount := 0
-	for key, data := range HSSDataMap {
-		switch field {
-		case "IMPI":
-			if data.IMPI == value {
-				delete(HSSDataMap, key)
-				deletedCount++
-				//log.Printf("Deleted entry with IMPU '%s'\n", value)
-			}
-		case "SCSCFName":
-			if data.SCSCFName == value {
-				delete(HSSDataMap, key)
-				deletedCount++
-				//log.Printf("Deleted entry with SCSCFName '%s'\n", value)
-			}
-		case "IMSRestorationInfo":
-			if data.IMSRestorationInfo == value {
-				delete(HSSDataMap, key)
-				deletedCount++
-				//log.Printf("Deleted entry with IMSRestorationInfo '%s'\n", value)
-			}
-		default:
-			//log.Printf("Error: Invalid field '%s' for deletion\n", field)
-			return 0 // Return 0 to indicate no deletion and an error.
-		}
-	}
-	return deletedCount
-}
-
-// readDataByField reads HSS data based on a specific field and value.
-// It returns a slice of HSSData that match the criteria.
-func readDataByField(field string, value string) []HSSData {
-	mapMutex.RLock()
-	defer mapMutex.RUnlock()
-
-	var result []HSSData
-	for _, data := range HSSDataMap {
-		switch field {
-		case "IMPI":
-			if data.IMPI == value {
-				result = append(result, data)
-			}
-		case "SCSCFName":
-			if data.SCSCFName == value {
-				result = append(result, data)
-			}
-		case "IMSRestorationInfo":
-			if data.IMSRestorationInfo == value {
-				result = append(result, data)
-			}
-		default:
-			//log.Printf("Error: Invalid field '%s' for reading\n", field)
-			return nil // Return nil to indicate no data and an error.
-		}
-	}
-	return result
 }

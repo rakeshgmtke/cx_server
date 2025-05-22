@@ -202,7 +202,7 @@ func handleMAR(settings sm.Settings, stats *DiameterStats, enableLogging bool) d
 			}
 		}
 
-		stats.IncrementReceived("MAA", string(req.OriginHost), string(req.SIPAuthDataItem.SIPAuthenticationScheme)+"-RESP-CODE-2001")
+		stats.IncrementReceived("MAA", string(req.OriginHost), string(req.SIPAuthDataItem.SIPAuthenticationScheme) + "-RESP-CODE-2001")
 
 		_, err = sendMAA_default(settings, c, a, enableLogging)
 		if err != nil {

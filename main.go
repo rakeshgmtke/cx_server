@@ -39,6 +39,11 @@ import (
 	"github.com/rakeshgmtke/go-diameter/diam/sm"
 )
 
+var (
+	buildTime string
+	version   string
+)
+
 const (
 	VENDOR_3GPP         = 10415
 	MandatoryCapability = 3
@@ -55,8 +60,23 @@ func main() {
 	enableLogging := flag.Bool("log", false, "Enable logging to a file")
 	logFilePath := flag.String("logpath", "/tmp/hss.log", "Path to the log file")
 	ifcXmlFile := flag.String("ifcxml", "", "Path to the User-Data XML file or it will use default ifc_default.xml file present in current directory")
+	versionFlag := flag.Bool("version", false, "Print application version and build time")
 
 	flag.Parse()
+
+	// Check if the -version flag was provided
+	if *versionFlag {
+		fmt.Printf("Version: %s\n", defaultString(version, "N/A"))
+		fmt.Printf("Build Time: %s\n", defaultString(buildTime, "N/A"))
+		return // Exit after printing version information
+	}	
+
+	if *enableLogging {
+		log.Printf("Version: %s\n", defaultString(version, "N/A"))
+		log.Printf("Build Time: %s\n", defaultString(buildTime, "N/A"))
+	}
+
+	log.Printf("Build Version: %s Build Time: %s\n", defaultString(version, "N/A"), defaultString(buildTime, "N/A"))
 
 	/*
 		// Check is ifcxml file is passed
@@ -193,8 +213,9 @@ func listen(networkType, addr, cert, key string, handler diam.Handler) error {
 
 func handleALL(c diam.Conn, m *diam.Message) {
 	//stats.IncrementReceived("HandleAll", "", "HandleAll")
-
-	//log.Printf("Received unexpected message from %s:\n%s", c.RemoteAddr(), m)
+	//if enableLogging {
+		log.Printf("Received unexpected message from %s:\n%s", c.RemoteAddr(), m)
+//	}	
 }
 
 // Assume msg is a *diam.Message
@@ -250,4 +271,13 @@ func getIPFromAddress(address string) (string, error) {
 		return ip.String(), nil
 	}
 	return "", fmt.Errorf("invalid address format: %s", address)
+}
+
+// defaultString returns the input string if it's not empty, otherwise returns the defaultVal.
+// This is a helper to display "N/A" if build flags aren't set.
+func defaultString(s, defaultVal string) string {
+	if s == "" {
+		return defaultVal
+	}
+	return s
 }

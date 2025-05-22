@@ -84,9 +84,6 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 		var msisdn string
 		var tel string
 
-		//avpSCSCFRestorationInfo := make(map[string]*diam.AVP, 5000000)
-		avpSCSCFRestorationInfo := make(map[string]*diam.AVP)
-
 		if err := m.Unmarshal(&req); err != nil {
 			log.Printf("Failed to parse message from %s: %s\n%s",
 				c.RemoteAddr(), err, m)
@@ -94,7 +91,7 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 		}
 
 		//SAR RECV Count
-		stats.IncrementReceived("SAR", string(req.OriginHost), "sar-type-"+string(fmt.Sprintf("%d", datatype.Enumerated(req.ServerAssignmentType))))
+		stats.IncrementReceived("SAR", string(req.OriginHost), "sar-type-" + string(fmt.Sprintf("%d", datatype.Enumerated(req.ServerAssignmentType))))
 
 		if enableLogging {
 			log.Printf("Received SAR from %s\n%s", c.RemoteAddr(), m)
@@ -103,6 +100,7 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 		Is_PublicIdentity_AVP, _ := m.FindAVP(avp.PublicIdentity, VENDOR_3GPP) // Provide both AVP code and Vendor ID (0 for standard)
 		if Is_PublicIdentity_AVP != nil {
 			impu = string(req.PublicIdentity)
+//			scscf_stored_name = readSCSCFNameData(impu)
 		}
 
 		/*
@@ -115,6 +113,7 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 		if Is_ServerName_AVP != nil {
 			scscf_name = string(req.ServerName)
 		}
+
 
 		//Creating Response without result code
 		a := m.Answer(0)
@@ -220,17 +219,18 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 						a.NewAVP(avp.ResultCode, avp.Mbit, 0, datatype.Unsigned32(2001)) //DIAMETER_SUCCESS
 
 						//if restoration info present for impu then Add it in response
-						if avpSCSCFRestorationInfo[impu] != nil {
+						if readIMSRestorationInfoData(impu) != nil {
 							if enableLogging {
-								log.Printf("adding avpSCSCFRestorationInfo for IMPU SAR_TYPE 3: %s", impu)
+									log.Printf("for IMPU: %s , for SAR_TYPE_0 IMS RestorationInfo Data Found", impu)
 							}
-							a.AddAVP(avpSCSCFRestorationInfo[impu])
-							stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-0"+"restore-info"+"-2001")
+							a.AddAVP(readIMSRestorationInfoData(impu))
+							stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-0" + "-restore-info" + "-2001")
 						} else {
-							stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-0"+"-2001")
+							if enableLogging {
+									log.Printf("for IMPU: %s , for SAR_TYPE_0 IMS RestorationInfo Data Not-Found", impu)
+							}
+							stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-0" + "-no-restore-info" + "-2001")
 						}
-
-						// need to add RESTORATION INFO if present.
 					} else {
 						a.NewAVP(avp.ExperimentalResult, avp.Mbit, 0, &diam.GroupedAVP{
 							AVP: []*diam.AVP{
@@ -238,10 +238,23 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 								diam.NewAVP(avp.ExperimentalResultCode, avp.Mbit, 0, datatype.Unsigned32(5012)), //DIAMETER_UNABLE_TO_COMPLY
 							},
 						})
-						stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-0"+"-5012")
+						if enableLogging {
+								log.Printf("for IMPU: %s , for SAR_TYPE_0 requesting S-CSCF is not the same as the assigned S-CSCF ", impu)
+						}
+						stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-0" + "-5012")
 					}
 				} else {
-					stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-0"+"-failed")
+                    a.NewAVP(avp.ExperimentalResult, avp.Mbit, 0, &diam.GroupedAVP{
+	                    AVP: []*diam.AVP{
+    	                    diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(VENDOR_3GPP)),
+        	                diam.NewAVP(avp.ExperimentalResultCode, avp.Mbit, 0, datatype.Unsigned32(5012)), //DIAMETER_UNABLE_TO_COMPLY
+                        },
+                    })
+                    if enableLogging {
+	                    log.Printf("for IMPU: %s , for SAR_TYPE_0 S-CSCF is not stored", impu)
+                    }
+					stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-0" + "-failed" + "-5012")
+
 				}
 			} else if req.ServerAssignmentType == 1 || req.ServerAssignmentType == 2 {
 				//log.Printf("ServerAssignmentType received:", req.ServerAssignmentType)
@@ -253,17 +266,24 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 				If it is REGISTRATION and the HSS implements IMS Restoration procedures, if multiple registration indication is included in the request and the Public User Identity is stored as registered in the HSS, and there is restoration information related to the Private User Identity, the HSS shall not overwrite the stored S-CSCF Restoration Information, instead, it shall send the stored S-CSCF restoration information together with the user profile in the SAA. The Experimental-Result-Code shall be set to DIAMETER_ERROR_IN_ASSIGNMENT_TYPE (5007). Otherwise, the HSS shall store the received S-CSCF restoration information. The  Result-Code shall be set to DIAMETER_SUCCESS.
 				*/
 
-				//Check is SCSCFRestorationInfo info present and store in avpSCSCFRestorationInfo map
+				//Check is SCSCFRestorationInfo info present and store in HSSData::IMSRestorationInfo map
 				if req.SCSCFRestorationInfo != nil {
-					avpSCSCFRestorationInfo[impu] = req.SCSCFRestorationInfo
-					if enableLogging {
-						log.Printf("imsRestorationInfo IMPU store: %s imsRestorationInfo : %s ", impu, avpSCSCFRestorationInfo[impu])
+					success := addOrModifyIMSRestorationInfo(impu, req.SCSCFRestorationInfo)
+					if success {
+						if enableLogging {
+							log.Printf("addOrModifyIMSRestorationInfo func success for IMPU: %s is RESTORATION INFO: %s is Stored is Successful", impu, req.SCSCFRestorationInfo)
+						}
+					} else {
+						if enableLogging {
+							log.Printf("addOrModifyIMSRestorationInfo func failed IMPU: %s  RESTORATION INFO: %s ", impu, req.SCSCFRestorationInfo)
+						}
 					}
 				}
+
 				if scscf_stored_name != "" {
 					if scscf_stored_name == scscf_name {
 						a.NewAVP(avp.ResultCode, avp.Mbit, 0, datatype.Unsigned32(2001)) //DIAMETER_SUCCESS
-						stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-"+string(fmt.Sprintf("%d", datatype.Enumerated(req.ServerAssignmentType)))+"-2001")
+						stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-" + string(fmt.Sprintf("%d", datatype.Enumerated(req.ServerAssignmentType))) + "-2001")
 						// need to store RESTORATION INFO if present.
 					} else {
 						a.NewAVP(avp.ServerName, avp.Mbit, 0, datatype.UTF8String(scscf_stored_name)) //Stored SCSCF NAME added
@@ -273,10 +293,10 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 								diam.NewAVP(avp.ExperimentalResultCode, avp.Mbit, 0, datatype.Unsigned32(5005)), //DIAMETER_ERROR_IDENTITY_ALREADY_REGISTERED
 							},
 						})
-						stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-"+string(fmt.Sprintf("%d", datatype.Enumerated(req.ServerAssignmentType)))+"-5005")
+						stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-" + string(fmt.Sprintf("%d", datatype.Enumerated(req.ServerAssignmentType))) + "-5005")
 					}
 				} else {
-					stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-"+string(fmt.Sprintf("%d", datatype.Enumerated(req.ServerAssignmentType)))+"-failed")
+					stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-" + string(fmt.Sprintf("%d", datatype.Enumerated(req.ServerAssignmentType))) + "-failed")
 				}
 			} else if req.ServerAssignmentType == 3 {
 				//log.Printf("ServerAssignmentType received:", req.ServerAssignmentType)
@@ -297,14 +317,19 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 					if scscf_stored_name == scscf_name {
 						a.NewAVP(avp.ResultCode, avp.Mbit, 0, datatype.Unsigned32(2001)) //DIAMETER_SUCCESS
 						//if restoration info present for impu then Add it in response
-						if avpSCSCFRestorationInfo[impu] != nil {
+
+						if readIMSRestorationInfoData(impu) != nil {
 							if enableLogging {
-								log.Printf("adding avpSCSCFRestorationInfo for IMPU SAR_TYPE 3: %s", impu)
+								log.Printf("for IMPU: %s , for SAR_TYPE_3 IMS RestorationInfo Data Found", impu)
 							}
-							a.AddAVP(avpSCSCFRestorationInfo[impu])
-							stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-3"+"restore-info"+"-2001")
+							a.AddAVP(readIMSRestorationInfoData(impu))
+							stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-3" + "-restore-info" + "-2001")
+						} else {
+							if enableLogging {
+								log.Printf("for IMPU: %s , for SAR_TYPE_3 IMS RestorationInfo Data Not-Found", impu)
+							}
+							stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-3" + "-no-restore-info" + "-2001")
 						}
-						// need to add RESTORATION INFO if present.
 					} else {
 						a.NewAVP(avp.ServerName, avp.Mbit, 0, datatype.UTF8String(scscf_stored_name)) //Stored SCSCF NAME added
 						a.NewAVP(avp.ExperimentalResult, avp.Mbit, 0, &diam.GroupedAVP{
@@ -313,7 +338,10 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 								diam.NewAVP(avp.ExperimentalResultCode, avp.Mbit, 0, datatype.Unsigned32(5005)), //DIAMETER_ERROR_IDENTITY_ALREADY_REGISTERED
 							},
 						})
-						stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-3"+"-5005")
+						if enableLogging {
+							log.Printf("for IMPU: %s , for SAR_TYPE_3 there is already an S-CSCF assigned to the user and the requesting S-CSCF is not the same as the previously assigned S-CSCF error 5005 DIAMETER_ERROR_IDENTITY_ALREADY_REGISTERED", impu)
+						}
+						stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-3" + "-5005")
 					}
 				} else {
 
@@ -330,7 +358,7 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 							}
 						}
 					}
-					stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-3"+"-server-name-empty-2001")
+					stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-3" + "-server-name-empty-2001")
 					a.NewAVP(avp.ResultCode, avp.Mbit, 0, datatype.Unsigned32(2001)) //DIAMETER_SUCCESS
 				}
 
@@ -344,16 +372,14 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 				// delete scscf name and delete IMS restoration info ++ DIAMETER_RESULT_SUCCESS
 
 				deleteIMPUData(impu)
-				delete(avpSCSCFRestorationInfo, impu)
 
 				// tmp
 				if enableLogging {
 					log.Printf("delete deleteIMPUData for IMPU SAR_TYPE IMPU :%s :SCSCF NAME: %s", impu, readSCSCFNameData(impu))
-					log.Printf("delete avpSCSCFRestorationInfo for IMPU SAR_TYPE IMPU:%s :restoration info: %s", impu, avpSCSCFRestorationInfo[impu])
 				}
 
 				a.NewAVP(avp.ResultCode, avp.Mbit, 0, datatype.Unsigned32(2001)) //DIAMETER_SUCCESS
-				stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-"+string(fmt.Sprintf("%d", datatype.Enumerated(req.ServerAssignmentType)))+"-2001")
+				stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-" + string(fmt.Sprintf("%d", datatype.Enumerated(req.ServerAssignmentType))) + "-2001")
 
 				// it will delete SCSCFName/IMPI/IMSRestorationInfo for that IMPU
 
@@ -378,7 +404,7 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 
 				*/
 
-				stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-"+string(fmt.Sprintf("%d", datatype.Enumerated(req.ServerAssignmentType)))+"-2004")
+				stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-" + string(fmt.Sprintf("%d", datatype.Enumerated(req.ServerAssignmentType))) + "-2004")
 				a.NewAVP(avp.ExperimentalResult, avp.Mbit, 0, &diam.GroupedAVP{
 					AVP: []*diam.AVP{
 						diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(VENDOR_3GPP)),
@@ -396,7 +422,7 @@ func handleSAR(settings sm.Settings, stats *DiameterStats, enableLogging bool, i
 						diam.NewAVP(avp.ExperimentalResultCode, avp.Mbit, 0, datatype.Unsigned32(5012)), //DIAMETER_UNABLE_TO_COMPLY
 					},
 				})
-				stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-nil"+"-5012")
+				stats.IncrementReceived("SAA", string(req.OriginHost), "sar-type-" + string(fmt.Sprintf("%d", datatype.Enumerated(req.ServerAssignmentType))) + "-5012")
 			}
 		}
 

@@ -61,7 +61,7 @@ func handleUAR(settings sm.Settings, stats *DiameterStats, enableLogging bool) d
 			return
 		}
 
-		stats.IncrementReceived("UAR", string(req.OriginHost), "uar-type-"+string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType))))
+		stats.IncrementReceived("UAR", string(req.OriginHost), "uar-type-" + string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType))))
 
 		if enableLogging {
 			log.Printf("Received UAR from %s\n%s", c.RemoteAddr(), m)
@@ -125,40 +125,40 @@ func handleUAR(settings sm.Settings, stats *DiameterStats, enableLogging bool) d
 		//log.Printf("Is_UserAuthorizationType_AVP received: %s : %d", Is_UserAuthorizationType_AVP, req.UserAuthorizationType)
 		if Is_UserAuthorizationType_AVP != nil {
 			if req.UserAuthorizationType == 0 && scscf_name == "" {
-				stats.IncrementReceived("UAA", string(req.OriginHost), "uar-type-"+string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType)))+"-RESP-CODE-2001")
+				stats.IncrementReceived("UAA", string(req.OriginHost), "uar-type-" + string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType))) + "-RESP-CODE-2001")
 				_, err = sendUAA_UAT_INIT_REG(settings, c, a, enableLogging)
 				if err != nil {
 					//log.Printf("Failed to send sendUAA_UAT_INIT_REG: %s", err.Error())
 				}
 			} else if req.UserAuthorizationType == 0 && scscf_name != "" {
 				a.NewAVP(avp.ServerName, avp.Mbit, VENDOR_3GPP, datatype.UTF8String(scscf_name))
-				stats.IncrementReceived("UAA", string(req.OriginHost), "uar-type-"+string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType)))+"-RESP-CODE-2002")
+				stats.IncrementReceived("UAA", string(req.OriginHost), "uar-type-" + string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType))) + "-RESP-CODE-2002")
 				_, err = sendUAA_UAT_SUBQ_REG(settings, c, a, enableLogging)
 				if err != nil {
 					//log.Printf("Failed to send sendUAA_UAT_SUBQ_REG: %s", err.Error())
 				}
 			} else if req.UserAuthorizationType == 1 && scscf_name == "" {
-				stats.IncrementReceived("UAA", string(req.OriginHost), "uar-type-"+string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType)))+"-RESP-CODE-2004")
+				stats.IncrementReceived("UAA", string(req.OriginHost), "uar-type-" + string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType))) + "-RESP-CODE-2004")
 				_, err = sendUAA_UAT_1_NOTREGTRD(settings, c, a, enableLogging)
 				if err != nil {
 					//log.Printf("Failed to send sendUAA_UAT_1_NOTREGTRD: %s", err.Error())
 				}
 			} else if req.UserAuthorizationType == 1 && scscf_name != "" {
 				a.NewAVP(avp.ServerName, avp.Mbit, VENDOR_3GPP, datatype.UTF8String(scscf_name))
-				stats.IncrementReceived("UAA", string(req.OriginHost), "uar-type-"+string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType)))+"-RESP-CODE-2001")
+				stats.IncrementReceived("UAA", string(req.OriginHost), "uar-type-" + string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType))) + "-RESP-CODE-2001")
 				_, err = sendUAA_UAT_1_REGTRD(settings, c, a, enableLogging)
 				if err != nil {
 					//log.Printf("Failed to send sendUAA_UAT_1_REGTRD: %s", err.Error())
 				}
 			} else if req.UserAuthorizationType == 2 {
-				stats.IncrementReceived("UAA", string(req.OriginHost), "uar-type-"+string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType)))+"-RESP-CODE-2001")
+				stats.IncrementReceived("UAA", string(req.OriginHost), "uar-type-" + string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType))) + "-RESP-CODE-2001")
 				_, err = sendUAA_UAT_2(settings, c, a, enableLogging)
 				if err != nil {
 					//log.Printf("Failed to send sendUAA_UAT_2: %s", err.Error())
 				}
 			}
 		} else {
-			stats.IncrementReceived("UAA", string(req.OriginHost), "uar-type-"+string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType)))+"-RESP-CODE-5012")
+			stats.IncrementReceived("UAA", string(req.OriginHost), "uar-type-" + string(fmt.Sprintf("%d", datatype.Enumerated(req.UserAuthorizationType))) + "-RESP-CODE-5012")
 			_, err = sendUAA_default(settings, c, a, enableLogging)
 			if err != nil {
 				//log.Printf("Failed to send sendUAA_default when UAT AVP is missing: %s", err.Error())
