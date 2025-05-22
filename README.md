@@ -11,12 +11,14 @@ A high-performance DIAMETER server for the Cx interface in IMS networks.
 
 ## Key Features
 
-* **Cx Interface Support:** Handles core Cx interface messages: UAR, MAR, SAR, and LIR.
-* **Standards Compliance:** Adheres to ETSI TS 129 228 and ETSI TS 129 229 specifications for the Cx interface based on the DIAMETER protocol.
+* **Cx Interface Support:** Handles Cx interface messages: UAR, MAR, SAR, and LIR.
+* **Standards Compliance:** Adheres upto 70% for 3GPP TS 29.228(IP Multimedia (IM) Subsystem Cx and Dx Interfaces;
+Signalling flows and message contents) and 3GPP TS 29.229(Cx and Dx interfaces based on the Diameter protocol;
+Protocol details) specifications
 * **Performance Optimized:** Developed in Go for high concurrency and efficient resource utilization.
 * **Statistics:** real-time server statistics.
 * **pprof Support:** Includes standard Go profiling for performance analysis.
-* **IMS Restoration Awareness:** Takes into account procedures defined in ETSI TS 123 380 for IMS restoration.
+* **IMS Restoration Procedures:** As per Spec "3GPP TS 23.380" IMS Restoration Procedures: currently, S-CSCF Restoration after Restart and S-CSCF Restoration after Failure is support.
 * **Configurable:** Uses command-line arguments for easy configuration of essential parameters.
 * **Logging:** Basic logging can be enabled. Logging can degrade script performance; use it for debugging purposes only.
 
@@ -66,6 +68,10 @@ You can run the `cx_server` directly from the command line after building it (if
 	
 	-pprof_addr
 		  Address in the form of ip:port for the pprof server (default: ":9000").
+
+	-version
+		  Print application version and build time
+
 
 
 ### cx_server Server Stats example
